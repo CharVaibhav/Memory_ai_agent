@@ -3,7 +3,7 @@
 This n8n workflow automates interactions with Telegram using an AI Agent. It listens for messages in a Telegram chat, enriches the data with information from Airtable, processes it with an AI model, and sends a response back to Telegram.
 
 ## Workflow Overview
-![n8n Workflow Screenshot](https://postimg.cc/ygDtjMVP)
+![n8n Workflow Screenshot](https://i.postimg.cc/cHhWxW2V/Screenshot-2025-02-26-144516.png)
 
 The workflow consists of the following nodes:
 
