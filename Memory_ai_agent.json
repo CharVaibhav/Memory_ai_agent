@@ -1,0 +1,338 @@
+{
+  "name": "Memory_ai_agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "34b3d7ae-a154-482a-bcf7-fb52d8a76cc7",
+      "name": "Telegram Trigger",
+      "webhookId": "cc684c39-420d-4600-991f-3e718fff327a",
+      "credentials": {
+        "telegramApi": {
+          "id": "49Y1HYEq5ZxPJxa0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app9x8pOhb2wlj62T",
+          "mode": "list",
+          "cachedResultName": "Agent memory",
+          "cachedResultUrl": "https://airtable.com/app9x8pOhb2wlj62T"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblHuV5fms0X4Nr8P",
+          "mode": "list",
+          "cachedResultName": "Memory",
+          "cachedResultUrl": "https://airtable.com/app9x8pOhb2wlj62T/tblHuV5fms0X4Nr8P"
+        },
+        "returnAll": false,
+        "limit": 50,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "ddd4f4cf-038a-4bc5-b309-555d43657360",
+      "name": "Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "EN4jHWUieDwkVoNO",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Memory"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "0894b0e8-b86c-4ef3-b0ce-6bc68e482710",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        640,
+        -160
+      ],
+      "id": "13512283-e6cf-446b-bd73-9ac6b0aa9243",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Current time/day: {{ $now }}\n\nyou are a helpul assistant with the ability to add and read \"memories\" about the user.\n\nTo add a new memory or insight to the top of your list of recent memories you can use the memory_tool which allows you to add short 1 sentence insights about the user to your memory for the future, in order to help you customize your response output.\n\nYour dont have to always \"customize\" based on the memories, but if there is a good reason to customize your response you can use the memories below to do so. These are memories that have been added by you. If you need to learn more about the user for the future you can ask questions in order to take note of their preferences.\n\nUse your current memories of the user to recall pas insights about them.\n\nRead your most recent memories here:\n{{ $json.Memory }}\n\nTailor your response based on relavant memories if you find that a memory is relavant to the response.\n\nAlways out your final response as a conversational piece rather than a list or blog post. If you must make a list keep it simple and dont add too much hierarchy only share the most important notes! After thinking of your response, consider the TLDR version and always give a conversationa, cheeky fun reply while remaining assertive, helpful and not too playful. Give a meek tone to your response."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1080,
+        -160
+      ],
+      "id": "42e59b66-9fc3-467b-97eb-0955a306fca6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Merge').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1180,
+        100
+      ],
+      "id": "bdd18499-a0ec-4132-853e-a26affc15fe3",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        80
+      ],
+      "id": "ac335697-1fee-4b65-bc46-d6068e8d7f5f",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "EtYXwCgl1Qw9IYke",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        -160
+      ],
+      "id": "4f796eaf-d1c1-4f2e-81e2-4038394af858",
+      "name": "Telegram",
+      "webhookId": "61a8b4de-07ea-4f74-ae46-33433181257a",
+      "credentials": {
+        "telegramApi": {
+          "id": "49Y1HYEq5ZxPJxa0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app9x8pOhb2wlj62T",
+          "mode": "list",
+          "cachedResultName": "Agent memory",
+          "cachedResultUrl": "https://airtable.com/app9x8pOhb2wlj62T"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblHuV5fms0X4Nr8P",
+          "mode": "list",
+          "cachedResultName": "Memory",
+          "cachedResultUrl": "https://airtable.com/app9x8pOhb2wlj62T/tblHuV5fms0X4Nr8P"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Memory": "={{ $fromAI('add_memory', 'write a memory for future reference in less than 140 words or less') }}"
+          },
+          "matchingColumns": [
+            "Memory"
+          ],
+          "schema": [
+            {
+              "id": "Memory",
+              "displayName": "Memory",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        1320,
+        80
+      ],
+      "id": "5432439d-cbf7-4f7c-b708-60735a821c81",
+      "name": "memory_tool",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "EN4jHWUieDwkVoNO",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "memory_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0fb17a12-6e3d-4986-8698-d93e05f57828",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8b32d91765006af09552ceac50409e4d3584fac142cc585c643dfe4b68fb589f"
+  },
+  "id": "Vy0E8ztHjf1sQj3n",
+  "tags": []
+}
